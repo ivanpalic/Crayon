@@ -19,13 +19,13 @@ namespace Exchange.Controllers
             _logger = logger;
         }
 
-        [HttpPost]        
-        public  async Task<ActionResult<ExchangeResult>> Calculate(ExchangeRequest request)
+        [HttpPost]
+        public async Task<ActionResult<ExchangeResult>> Calculate(ExchangeRequest request)
         {
 
             String url_str = "https://api.exchangerate.host/latest";
 
-            WebRequest webRequest = WebRequest.Create(url_str);            
+            WebRequest webRequest = WebRequest.Create(url_str);
             webRequest.ContentType = "application/json";
 
             WebResponse webResponse = await webRequest.GetResponseAsync();
@@ -33,15 +33,25 @@ namespace Exchange.Controllers
 
             string s = sr.ReadToEnd();
 
-            JObject parsed = JObject.Parse(s);
+            var list = JProperty.Parse(s).Last.Values().ToList();
 
-            var rr = parsed.Last.ToObject<Object>();
+            List<Rate> rates = new List<Rate>();
 
-            HostResponse rates = JsonConvert.DeserializeObject<HostResponse>(s);
+            foreach (JProperty p in list)
+            {
+                rates.Add( new Rate{ Currency = p.Name, ExchangeRate = Double.Parse(p.Value.ToString()) });
+            }
+
+            //string res = parsed.Get("result").ToString();
+
+            //var ratess = JArray.Parse(parsed.Last.Value().ToString());          
+
+
+            //Root rates = JsonConvert.DeserializeObject<Root>(s);
 
             return new JsonResult(new ExchangeResult
             {
-                Max =  new Rate { Currency = "RSD", ExchangeRate = 175.57 },
+                Max = new Rate { Currency = "RSD", ExchangeRate = 175.57 },
                 Min = new Rate { Currency = "RSD", ExchangeRate = 175.57 },
                 Average = 0.12345
             });

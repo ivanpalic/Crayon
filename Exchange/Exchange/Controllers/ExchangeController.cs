@@ -1,5 +1,6 @@
 using Exchange.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace Exchange.Controllers
 {
@@ -17,6 +18,14 @@ namespace Exchange.Controllers
         [HttpPost]        
         public  async Task<ActionResult<ExchangeResult>> Calculate(ExchangeRequest request)
         {
+
+            String url_str = "https://api.exchangerate.host/latest";
+
+            WebRequest webRequest = WebRequest.Create(url_str);
+
+            WebResponse webResponse = await webRequest.GetResponseAsync();
+            StreamReader sr = new StreamReader(webResponse.GetResponseStream());
+
             return new JsonResult(new ExchangeResult
             {
                 Max =  new Rate { Date = new DateTime (2022, 4, 23), ExchangeRate = 175.57 },

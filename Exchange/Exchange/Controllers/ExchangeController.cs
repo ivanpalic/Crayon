@@ -1,6 +1,10 @@
 using Exchange.Models;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Linq;
 using System.Net;
+using System.Net.Http.Headers;
 
 namespace Exchange.Controllers
 {
@@ -21,15 +25,24 @@ namespace Exchange.Controllers
 
             String url_str = "https://api.exchangerate.host/latest";
 
-            WebRequest webRequest = WebRequest.Create(url_str);
+            WebRequest webRequest = WebRequest.Create(url_str);            
+            webRequest.ContentType = "application/json";
 
             WebResponse webResponse = await webRequest.GetResponseAsync();
             StreamReader sr = new StreamReader(webResponse.GetResponseStream());
 
+            string s = sr.ReadToEnd();
+
+            JObject parsed = JObject.Parse(s);
+
+            var rr = parsed.Last.ToObject<Object>();
+
+            HostResponse rates = JsonConvert.DeserializeObject<HostResponse>(s);
+
             return new JsonResult(new ExchangeResult
             {
-                Max =  new Rate { Date = new DateTime (2022, 4, 23), ExchangeRate = 175.57 },
-                Min = new Rate { Date = new DateTime (2022, 4, 23), ExchangeRate = 175.57 },
+                Max =  new Rate { Currency = "RSD", ExchangeRate = 175.57 },
+                Min = new Rate { Currency = "RSD", ExchangeRate = 175.57 },
                 Average = 0.12345
             });
         }

@@ -3,6 +3,6 @@
     public class Rate
     {
         public double ExchangeRate { get; set; }
-        public DateTime Date { get; set; }
+        public string Currency { get; set; }
     }
 }

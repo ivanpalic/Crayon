@@ -23,6 +23,7 @@ namespace Exchange.Controllers
         public async Task<ActionResult<ExchangeResult>> Calculate(ExchangeRequest request)
         {
 
+            ExchangeRequest req = request;
             String url_str = "https://api.exchangerate.host/latest";
 
             WebRequest webRequest = WebRequest.Create(url_str);
@@ -41,13 +42,6 @@ namespace Exchange.Controllers
             {
                 rates.Add( new Rate{ Currency = p.Name, ExchangeRate = Double.Parse(p.Value.ToString()) });
             }
-
-            //string res = parsed.Get("result").ToString();
-
-            //var ratess = JArray.Parse(parsed.Last.Value().ToString());          
-
-
-            //Root rates = JsonConvert.DeserializeObject<Root>(s);
 
             return new JsonResult(new ExchangeResult
             {

@@ -1,10 +1,5 @@
 using Exchange.Models;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Linq;
-using System.Net;
-using System.Net.Http.Headers;
 
 namespace Exchange.Controllers
 {
@@ -22,32 +17,23 @@ namespace Exchange.Controllers
         [HttpPost]
         public async Task<ActionResult<ExchangeResult>> Calculate(ExchangeRequest request)
         {
+            String baseCurrency = request.BaseCurrency;
+            String targetCurrency = request.TargetCurrency;
 
-            ExchangeRequest req = request;
-            String url_str = "https://api.exchangerate.host/latest";
+            Processor processor = new Processor();
 
-            WebRequest webRequest = WebRequest.Create(url_str);
-            webRequest.ContentType = "application/json";
+            var tasks = request.Dates.Select(date => processor.GetRate(date, baseCurrency, targetCurrency));
+            var rates = await Task.WhenAll(tasks);
 
-            WebResponse webResponse = await webRequest.GetResponseAsync();
-            StreamReader sr = new StreamReader(webResponse.GetResponseStream());
-
-            string s = sr.ReadToEnd();
-
-            var list = JProperty.Parse(s).Last.Values().ToList();
-
-            List<Rate> rates = new List<Rate>();
-
-            foreach (JProperty p in list)
-            {
-                rates.Add( new Rate{ Currency = p.Name, ExchangeRate = Double.Parse(p.Value.ToString()) });
-            }
+            Rate max = rates.MaxBy(rate => rate.ExchangeRate);
+            Rate min = rates.MinBy(rate => rate.ExchangeRate);
+            double avg = rates.Average(rate => rate.ExchangeRate);
 
             return new JsonResult(new ExchangeResult
             {
-                Max = new Rate { Currency = "RSD", ExchangeRate = 175.57 },
-                Min = new Rate { Currency = "RSD", ExchangeRate = 175.57 },
-                Average = 0.12345
+                Max = max,
+                Min = min,
+                Average = avg
             });
         }
     }
